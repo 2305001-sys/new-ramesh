@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Shopping Cart</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; padding: 20px; }
+        .container { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; }
+        .product-card, .cart-section, .payment-gateway { 
+            background: white; border: 1px solid #ccc; padding: 15px; width: 200px; 
+        }
+        .cart-section, .payment-gateway { width: 300px; margin: 20px auto; }
+        .btn { background-color: green; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; }
+        .btn-cancel { background-color: #d9534f; margin-left: 10px; }
+        .hidden { display: none; }
+        input { margin: 10px 0; padding: 5px; width: 80%; }
+    </style>
+</head>
+<body>
+
+    <!-- Product Grid -->
+    <div class="container">
+        <div class="product-card">
+            <h3>Smart Watch</h3>
+            <p>₹2500</p>
+            <button class="btn" onclick="addToCart('Smart Watch', 2500)">Add to Cart</button>
+        </div>
+        <div class="product-card">
+            <h3>Bluetooth Speaker</h3>
+            <p>₹1800</p>
+            <button class="btn" onclick="addToCart('Bluetooth Speaker', 1800)">Add to Cart</button>
+        </div>
+        <div class="product-card">
+            <h3>Wireless Earbuds</h3>
+            <p>₹3200</p>
+            <button class="btn" onclick="addToCart('Wireless Earbuds', 3200)">Add to Cart</button>
+        </div>
+        <div class="product-card">
+            <h3>Fitness Band</h3>
+            <p>₹1500</p>
+            <button class="btn" onclick="addToCart('Fitness Band', 1500)">Add to Cart</button>
+        </div>
+    </div>
+
+    <!-- Shopping Cart -->
+    <div class="cart-section">
+        <h2>Shopping Cart</h2>
+        <ul id="cart-items" style="list-style: none; padding: 0;"></ul>
+        <p><strong>Total: ₹<span id="total-price">0</span></strong></p>
+        <button class="btn" onclick="showPayment()">Buy Now</button>
+    </div>
+
+    <!-- Dummy Payment Gateway -->
+    <div id="payment-gateway" class="payment-gateway hidden">
+        <h2>Dummy Payment Gateway</h2>
+        <p>Total Amount: ₹<span id="payment-total">0</span></p>
+        <input type="text" id="card-number" placeholder="Enter Card Number">
+        <br>
+        <button class="btn" onclick="processPayment()">Pay</button>
+        <button class="btn btn-cancel" onclick="cancelPayment()">Cancel</button>
+        <p style="font-size: 0.8em; margin-top: 15px;">
+            Use 1111 1111 1111 1111 → Success <br>
+            Use 2222 2222 2222 2222 → Failed
+        </p>
+    </div>
+
+    <script>
+        let total = 0;
+
+        function addToCart(name, price) {
+            const list = document.getElementById('cart-items');
+            const entry = document.createElement('li');
+            entry.textContent = `${name} - ₹${price}`;
+            list.appendChild(entry);
+            
+            total += price;
+            document.getElementById('total-price').innerText = total;
+        }
+
+        function showPayment() {
+            if (total === 0) return alert("Cart is empty!");
+            document.getElementById('payment-total').innerText = total;
+            document.getElementById('payment-gateway').classList.remove('hidden');
+        }
+
+        function processPayment() {
+            const card = document.getElementById('card-number').value.replace(/\s/g, '');
+            if (card === '1111111111111111') {
+                alert("Payment Successful!");
+                location.reload(); // Reset page
+            } else if (card === '2222222222222222') {
+                alert("Payment Failed. Try again.");
+            } else {
+                alert("Invalid Card Number.");
+            }
+        }
+
+        function cancelPayment() {
+            document.getElementById('payment-gateway').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
