@@ -3,101 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Shopping Cart</title>
+    <title>E-Shop Prototype</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; padding: 20px; }
-        .container { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; }
-        .product-card, .cart-section, .payment-gateway { 
-            background: white; border: 1px solid #ccc; padding: 15px; width: 200px; 
+        :root {
+            --primary-green: #28a745;
+            --border-color: #ddd;
         }
-        .cart-section, .payment-gateway { width: 300px; margin: 20px auto; }
-        .btn { background-color: green; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; }
-        .btn-cancel { background-color: #d9534f; margin-left: 10px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f9f9f9; padding: 40px; color: #333; }
+        
+        /* Layout Grid */
+        .product-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        
+        /* Cards */
+        .card { 
+            background: white; border: 1px solid var(--border-color); 
+            padding: 20px; width: 220px; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .section-box { max-width: 400px; margin: 30px auto; background: white; border: 1px solid var(--border-color); padding: 25px; }
+
+        /* Buttons */
+        .btn { 
+            background: var(--primary-green); color: white; border: none; 
+            padding: 10px 15px; cursor: pointer; font-weight: bold; width: 100%; border-radius: 3px;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-cancel { background: #6c757d; margin-top: 10px; }
+
+        /* Payment Form */
+        input { width: 100%; padding: 10px; margin: 15px 0; border: 1px solid #ccc; box-sizing: border-box; }
         .hidden { display: none; }
-        input { margin: 10px 0; padding: 5px; width: 80%; }
+        .hint { font-size: 12px; color: #666; margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px; }
     </style>
 </head>
 <body>
 
-    <!-- Product Grid -->
-    <div class="container">
-        <div class="product-card">
+    <!-- 1. Product Selection -->
+    <div class="product-grid">
+        <div class="card">
             <h3>Smart Watch</h3>
             <p>₹2500</p>
             <button class="btn" onclick="addToCart('Smart Watch', 2500)">Add to Cart</button>
         </div>
-        <div class="product-card">
+        <div class="card">
             <h3>Bluetooth Speaker</h3>
             <p>₹1800</p>
             <button class="btn" onclick="addToCart('Bluetooth Speaker', 1800)">Add to Cart</button>
         </div>
-        <div class="product-card">
+        <div class="card">
             <h3>Wireless Earbuds</h3>
             <p>₹3200</p>
             <button class="btn" onclick="addToCart('Wireless Earbuds', 3200)">Add to Cart</button>
         </div>
-        <div class="product-card">
-            <h3>Fitness Band</h3>
-            <p>₹1500</p>
-            <button class="btn" onclick="addToCart('Fitness Band', 1500)">Add to Cart</button>
+    </div>
+
+    <!-- 2. Shopping Cart Display -->
+    <div class="section-box" id="cart-ui">
+        <h2>Shopping Cart</h2>
+        <div id="items-list" style="text-align: left; margin-bottom: 15px;">
+            <p style="color: #888;">Your cart is empty.</p>
+        </div>
+        <hr>
+        <p><strong>Total: ₹<span id="total-val">0</span></strong></p>
+        <button class="btn" onclick="openGateway()">Buy Now</button>
+    </div>
+
+    <!-- 3. Payment Gateway Overlay -->
+    <div class="section-box hidden" id="gateway-ui">
+        <h3>Dummy Payment Gateway</h3>
+        <p>Amount to Pay: <strong>₹<span id="pay-amt">0</span></strong></p>
+        <input type="text" id="card-input" placeholder="0000 0000 0000 0000" maxlength="16">
+        <button class="btn" onclick="validatePay()">Pay Now</button>
+        <button class="btn btn-cancel" onclick="closeGateway()">Cancel</button>
+        
+        <div class="hint">
+            <strong>Testing Credentials:</strong><br>
+            - Success: 1111111111111111<br>
+            - Failure: 2222222222222222
         </div>
     </div>
 
-    <!-- Shopping Cart -->
-    <div class="cart-section">
-        <h2>Shopping Cart</h2>
-        <ul id="cart-items" style="list-style: none; padding: 0;"></ul>
-        <p><strong>Total: ₹<span id="total-price">0</span></strong></p>
-        <button class="btn" onclick="showPayment()">Buy Now</button>
-    </div>
-
-    <!-- Dummy Payment Gateway -->
-    <div id="payment-gateway" class="payment-gateway hidden">
-        <h2>Dummy Payment Gateway</h2>
-        <p>Total Amount: ₹<span id="payment-total">0</span></p>
-        <input type="text" id="card-number" placeholder="Enter Card Number">
-        <br>
-        <button class="btn" onclick="processPayment()">Pay</button>
-        <button class="btn btn-cancel" onclick="cancelPayment()">Cancel</button>
-        <p style="font-size: 0.8em; margin-top: 15px;">
-            Use 1111 1111 1111 1111 → Success <br>
-            Use 2222 2222 2222 2222 → Failed
-        </p>
-    </div>
-
     <script>
+        let cart = [];
         let total = 0;
 
         function addToCart(name, price) {
-            const list = document.getElementById('cart-items');
-            const entry = document.createElement('li');
-            entry.textContent = `${name} - ₹${price}`;
-            list.appendChild(entry);
+            cart.push({name, price});
+            updateUI();
+        }
+
+        function updateUI() {
+            const list = document.getElementById('items-list');
+            total = cart.reduce((sum, item) => sum + item.price, 0);
             
-            total += price;
-            document.getElementById('total-price').innerText = total;
+            list.innerHTML = cart.map(item => `<div>• ${item.name} - ₹${item.price}</div>`).join('');
+            document.getElementById('total-val').innerText = total;
+            if(cart.length === 0) list.innerHTML = '<p style="color: #888;">Your cart is empty.</p>';
         }
 
-        function showPayment() {
-            if (total === 0) return alert("Cart is empty!");
-            document.getElementById('payment-total').innerText = total;
-            document.getElementById('payment-gateway').classList.remove('hidden');
+        function openGateway() {
+            if(total === 0) return alert("Add items first!");
+            document.getElementById('pay-amt').innerText = total;
+            document.getElementById('gateway-ui').classList.remove('hidden');
+            document.getElementById('cart-ui').classList.add('hidden');
         }
 
-        function processPayment() {
-            const card = document.getElementById('card-number').value.replace(/\s/g, '');
-            if (card === '1111111111111111') {
-                alert("Payment Successful!");
-                location.reload(); // Reset page
-            } else if (card === '2222222222222222') {
-                alert("Payment Failed. Try again.");
+        function closeGateway() {
+            document.getElementById('gateway-ui').classList.add('hidden');
+            document.getElementById('cart-ui').classList.remove('hidden');
+        }
+
+        function validatePay() {
+            const val = document.getElementById('card-input').value;
+            if(val === "1111111111111111") {
+                alert("✅ Payment Successful! Order Placed.");
+                cart = []; 
+                updateUI();
+                closeGateway();
+            } else if(val === "2222222222222222") {
+                alert("❌ Payment Failed. Please check your card details.");
             } else {
-                alert("Invalid Card Number.");
+                alert("Please enter a valid 16-digit dummy card.");
             }
-        }
-
-        function cancelPayment() {
-            document.getElementById('payment-gateway').classList.add('hidden');
         }
     </script>
 </body>
